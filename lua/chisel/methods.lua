@@ -3,116 +3,103 @@ local U = require("chisel.utils")
 
 -- api ------------------------------------------------------------------------
 
--- split string into parts conserving case
--- example: "fooBar_foo We-Boo" -> {"foo", "Bar", "foo", "We", "Boo"}
----@param  str string
----@return string[]
-M.parts = function(str)
-    local tokens = {}
+---@type table<string, Chisel.Method>
+M.built_in = {}
 
-    -- split on basic separators
-    for piece in str:gmatch("[^_%-%./ ]+") do -- Note: we join adjacent gliphs
-        local start = 1
-        local len = U.utf8len(piece)
+-- sugar ----------------------------------------------------------------------
 
-        for i = 2, len do -- camelCase + PascalCase like boundaries
-            local prev = U.utf8sub(piece, i - 1, i - 1)
-            local curr = U.utf8sub(piece, i, i)
-
-            if U.is_boundary(prev, curr) then
-                table.insert(tokens, U.utf8sub(piece, start, i - 1))
-                start = i
-            end
-        end
-
-        table.insert(tokens, U.utf8sub(piece, start))
-    end
-
-    return tokens
+-- register method into M.built_in
+---@param  name string
+---@param  func Chisel.Method
+---@return Chisel.Method: func
+local register = function(name, func)
+    M.built_in[name] = func
+    return func
 end
 
 -- methods --------------------------------------------------------------------
 
 ---@type Chisel.Method
-local to_camel = function(str)
-    local p = M.parts(str)
-    if #p == 0 then return "" end
-    local out = { p[1] } -- first stays lowercase
-    for i = 2, #p do out[i] = U.cap(p[i]) end
-    return table.concat(out, "")
-end
+local to_title = register("title", function(str)
+    local p = U.parts(str)
+    for i = 1, #p do p[i] = U.cap(p[i]) end
+    return table.concat(p, "_")
+end)
 
 ---@type Chisel.Method
-local to_pascal = function(str)
-    local p = M.parts(str)
+local to_phrase = register("phrase", function(str)
+    local p = U.parts(str)
+    if #p == 0 then return "" end
+    p[1] = U.cap(p[1])
+    for i = 2, #p do p[i] = U.lower(p[i]) end
+    return table.concat(p, " ")
+end)
+
+---@type Chisel.Method
+local to_comma = register("comma", function(str)
+    local p = U.parts(str)
+    return table.concat(p, ",")
+end)
+
+---@type Chisel.Method
+local to_camel = register("camel", function(str)
+    local p = U.parts(str)
+    if #p == 0 then return "" end
+    local out = { U.lower(p[1]) } -- first stays lowercase
+    for i = 2, #p do table.insert(out, U.cap(p[i])) end
+    return table.concat(out, "")
+end)
+
+---@type Chisel.Method
+local to_pascal = register("pascal", function(str)
+    local p = U.parts(str)
     for i = 1, #p do p[i] = U.cap(p[i]) end
     return table.concat(p, "")
-end
+end)
 
 ---@type Chisel.Method
-local to_snake = function(str)
-    local p = M.parts(str)
+local to_snake = register("snake", function(str)
+    local p = U.parts(str)
     return U.lower(table.concat(p, "_"))
-end
+end)
 
 ---@type Chisel.Method
-local to_upper = function(str)
-    local p = M.parts(str)
+local to_upper = register("upper", function(str)
+    local p = U.parts(str)
     return U.upper(table.concat(p, "_"))
-end
+end)
 
 ---@type Chisel.Method
-local to_kebab = function(str)
-    local p = M.parts(str)
+local to_kebab = register("kebab", function(str)
+    local p = U.parts(str)
     return U.lower(table.concat(p, "-"))
-end
+end)
 
 ---@type Chisel.Method
-local to_dot = function(str)
-    local p = M.parts(str)
+local to_dot = register("dot", function(str)
+    local p = U.parts(str)
     return table.concat(p, ".")
-end
+end)
 
 ---@type Chisel.Method
-local to_path = function(str)
-    local p = M.parts(str)
+local to_path = register("path", function(str)
+    local p = U.parts(str)
     return table.concat(p, "/")
-end
+end)
 
 ---@type Chisel.Method
-local to_space = function(str)
-    local p = M.parts(str)
+local to_space = register("space", function(str)
+    local p = U.parts(str)
     return table.concat(p, " ")
-end
+end)
 
 ---@type Chisel.Method
-local to_n12e = function(str)
+local to_n12e = register("n12e", function(str)
     local len = M.utf8len(str)
     if len <= 2 then return str end
     return U.utf8sub(str, 1, 1) .. (len - 2) .. U.utf8sub(str, len, len)
-end
+end)
 
--- TODO:
--- Title_Case
--- Phrase_case
--- comma,case
--- add some variants for
---      - Title-Case  | Title Case
---      - Phrase-case | Phrase case
-
--- setup ----------------------------------------------------------------------
-
----@type table<string, Chisel.Method>
-M.built_in = {
-    ["camel"]  = to_camel,
-    ["pascal"] = to_pascal,
-    ["snake"]  = to_snake,
-    ["upper"]  = to_upper,
-    ["kebab"]  = to_kebab,
-    ["dot"]    = to_dot,
-    ["path"]   = to_path,
-    ["space"]  = to_space,
-    ["n12e"]   = to_n12e,
-}
+-------------------------------------------------------------------------------
 
 return M

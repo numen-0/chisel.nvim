@@ -44,14 +44,17 @@ conventions.
   lines or mixed separators.
 - Built-in case conversions:
   + `camelCase`
+  + `comma,case`
   + `dot.case`
   + `kebab-case`
   + `n12e`
-  + `PascalCase`
-  + `snake_case`
-  + `UPPER_CASE`
   + `path/case`
+  + `PascalCase`
+  + `Phrase_case`
+  + `snake_case`
   + `space case`
+  + `Title_Case`
+  + `UPPER_CASE`
 - Custom methods can be added.
 
 ## Install
@@ -61,7 +64,7 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 ```lua
 {
     "numen-0/chisel.nvim",
-    options = {},
+    opts = {},
 }
 ```
 
@@ -80,12 +83,47 @@ require("chisel").setup({
 
 ## Create your own case transformations
 
+Simple example:
+
 ```lua
 local chisel = require("chisel")
 
 chisel.register("double", function(str)
     return str .. str
 end)
+```
+
+A more complex example:
+
+```lua
+local chisel = require("chisel")
+local utils = require("chisel.utils")
+
+-- hibrid_camelCase
+chisel.register("hibrid", function(str)
+    local p = utils.parts(str)
+    if #p == 0 then return "" end
+
+    -- head is first word lowercase
+    local head = utils.lower(p[1])
+
+    -- tail is the rest as camelCase
+    local tail = table.concat(vim.list_slice(p, 2, #p), "_")
+
+    -- join
+    if tail then
+        tail = chisel.apply("camel", tail)
+        return head .. "_" .. tail
+    else
+        return head
+    end
+end)
+```
+
+Keymaps:
+
+```lua
+local chisel = require("chisel")
 
 vim.keymap.set("n", "<leader>cd", function()
     chisel.current_word("double")

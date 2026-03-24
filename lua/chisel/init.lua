@@ -4,7 +4,7 @@
 -- types ----------------------------------------------------------------------
 
 ---@class Chisel.Config
----@field methods       table<string, Chisel.Method>
+---@field methods table<string, Chisel.Method>
 
 ---@alias Chisel.Method fun(string): string
 
@@ -12,13 +12,13 @@
 
 local M = {}
 local methods = require("chisel.methods")
-local utils = require("chisel.utils")
+local U = require("chisel.utils")
 
 -- state ----------------------------------------------------------------------
 
 ---@type Chisel.Config
 M.config = {
-    methods = methods.built_in,
+    methods = U.clone(methods.built_in),
 }
 
 -- api ------------------------------------------------------------------------
@@ -68,10 +68,10 @@ M.visual = function(method)
 
     local new = ""
 
-    if utils.is_identifier(text) then
+    if U.is_identifier(text) then
         new = M.apply(method, text)
     else
-        local parts = utils.split_preserve(text)
+        local parts = U.split_preserve(text)
 
         for _, p in ipairs(parts) do
             p.word = M.apply(method, p.word)
@@ -102,5 +102,7 @@ M.setup = function(opts)
         end
     end
 end
+
+-------------------------------------------------------------------------------
 
 return M

@@ -1,5 +1,7 @@
 local M = {}
 
+-- string ---------------------------------------------------------------------
+
 M.upper = vim.fn.toupper
 M.lower = vim.fn.tolower
 
@@ -54,18 +56,6 @@ M.is_ascii = function(str)
     return not str:find("[\128-\255]")
 end
 
----@param  t table<string, any[]>
----@return any[]
-M.flatten = function(t)
-    local flat = {}
-    for _, list in pairs(t) do
-        for _, item in ipairs(list) do
-            table.insert(flat, item)
-        end
-    end
-    return flat
-end
-
 -- from: https://github.com/blitmap/lua-utf8-simple/tree/master
 ---@param  str string
 ---@return integer
@@ -108,5 +98,55 @@ M.utf8sub = function(str, i, j)
 
     return table.concat(out)
 end
+
+-- split string into parts conserving case
+-- example: "fooBar_foo We-Boo" -> {"foo", "Bar", "foo", "We", "Boo"}
+---@param  str string
+---@return string[]
+M.parts = function(str)
+    local tokens = {}
+
+    -- split on basic separators
+    for piece in str:gmatch("[^_%-%./ ]+") do -- Note: we join adjacent gliphs
+        local start = 1
+        local len = M.utf8len(piece)
+
+        for i = 2, len do -- camelCase + PascalCase like boundaries
+            local prev = M.utf8sub(piece, i - 1, i - 1)
+            local curr = M.utf8sub(piece, i, i)
+
+            if M.is_boundary(prev, curr) then
+                table.insert(tokens, M.utf8sub(piece, start, i - 1))
+                start = i
+            end
+        end
+
+        table.insert(tokens, M.utf8sub(piece, start))
+    end
+
+    return tokens
+end
+
+-- table ----------------------------------------------------------------------
+
+---@param  t table<string, any[]>
+---@return any[]
+M.flatten = function(t)
+    local flat = {}
+    for _, list in pairs(t) do
+        for _, item in ipairs(list) do
+            table.insert(flat, item)
+        end
+    end
+    return flat
+end
+
+---@param  t table
+---@return table
+M.clone = function(t)
+    return vim.tbl_extend("force", {}, t)
+end
+
+-------------------------------------------------------------------------------
 
 return M
