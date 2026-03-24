@@ -48,14 +48,6 @@ M.split_preserve = function(text)
     return result
 end
 
----@param t table
----@param cb fun(key:string, value:any)
-M.foreach = function(t, cb)
-    for key, value in pairs(t) do
-        cb(key, value)
-    end
-end
-
 ---@param  str string
 ---@return boolean
 M.is_ascii = function(str)

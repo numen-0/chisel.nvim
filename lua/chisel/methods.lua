@@ -3,14 +3,15 @@ local U = require("chisel.utils")
 
 -- api ------------------------------------------------------------------------
 
--- example: "fooBar_foo We-Boo" -> {"foo", "bar", "foo", "we", "boo"}
+-- split string into parts conserving case
+-- example: "fooBar_foo We-Boo" -> {"foo", "Bar", "foo", "We", "Boo"}
 ---@param  str string
 ---@return string[]
 M.parts = function(str)
     local tokens = {}
 
     -- split on basic separators
-    for piece in str:gmatch("[^_%-%./]+") do -- Note: we join separators
+    for piece in str:gmatch("[^_%-%./ ]+") do -- Note: we join adjacent gliphs
         local start = 1
         local len = U.utf8len(piece)
 
@@ -19,12 +20,12 @@ M.parts = function(str)
             local curr = U.utf8sub(piece, i, i)
 
             if U.is_boundary(prev, curr) then
-                table.insert(tokens, U.lower(U.utf8sub(piece, start, i - 1)))
+                table.insert(tokens, U.utf8sub(piece, start, i - 1))
                 start = i
             end
         end
 
-        table.insert(tokens, U.lower(U.utf8sub(piece, start)))
+        table.insert(tokens, U.utf8sub(piece, start))
     end
 
     return tokens
@@ -51,7 +52,7 @@ end
 ---@type Chisel.Method
 local to_snake = function(str)
     local p = M.parts(str)
-    return table.concat(p, "_")
+    return U.lower(table.concat(p, "_"))
 end
 
 ---@type Chisel.Method
@@ -69,7 +70,7 @@ end
 ---@type Chisel.Method
 local to_dot = function(str)
     local p = M.parts(str)
-    return U.lower(table.concat(p, "."))
+    return table.concat(p, ".")
 end
 
 ---@type Chisel.Method
@@ -98,9 +99,6 @@ end
 -- add some variants for
 --      - Title-Case  | Title Case
 --      - Phrase-case | Phrase case
--- also some should preserve the Case like:
---      - path/Case
-
 
 -- setup ----------------------------------------------------------------------
 
