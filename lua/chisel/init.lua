@@ -85,9 +85,6 @@ M.visual = function(method)
         new = table.concat(out)
     end
 
-    E(text)
-    E({["start"] = start_pos, ["end"] = end_pos, ["new"] = new})
-
     vim.api.nvim_buf_set_text(0, srow, scol, erow, ecol, vim.split(new, "\n"))
 end
 

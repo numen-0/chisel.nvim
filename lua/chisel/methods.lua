@@ -1,5 +1,5 @@
 local M = {}
-local utils = require("chisel.utils")
+local U = require("chisel.utils")
 
 -- api ------------------------------------------------------------------------
 
@@ -12,19 +12,19 @@ M.parts = function(str)
     -- split on basic separators
     for piece in str:gmatch("[^_%-%./]+") do -- Note: we join separators
         local start = 1
-        local len = #piece
+        local len = U.utf8len(piece)
 
         for i = 2, len do -- camelCase + PascalCase like boundaries
-            local prev = piece:sub(i - 1, i - 1)
-            local curr = piece:sub(i, i)
+            local prev = U.utf8sub(piece, i - 1, i - 1)
+            local curr = U.utf8sub(piece, i, i)
 
-            if utils.is_boundary(prev, curr) then
-                table.insert(tokens, piece:sub(start, i - 1):lower())
+            if U.is_boundary(prev, curr) then
+                table.insert(tokens, U.lower(U.utf8sub(piece, start, i - 1)))
                 start = i
             end
         end
 
-        table.insert(tokens, piece:sub(start):lower())
+        table.insert(tokens, U.lower(U.utf8sub(piece, start)))
     end
 
     return tokens
@@ -37,14 +37,14 @@ local to_camel = function(str)
     local p = M.parts(str)
     if #p == 0 then return "" end
     local out = { p[1] } -- first stays lowercase
-    for i = 2, #p do out[i] = utils.cap(p[i]) end
+    for i = 2, #p do out[i] = U.cap(p[i]) end
     return table.concat(out, "")
 end
 
 ---@type Chisel.Method
 local to_pascal = function(str)
     local p = M.parts(str)
-    for i = 1, #p do p[i] = utils.cap(p[i]) end
+    for i = 1, #p do p[i] = U.cap(p[i]) end
     return table.concat(p, "")
 end
 
@@ -57,19 +57,19 @@ end
 ---@type Chisel.Method
 local to_upper = function(str)
     local p = M.parts(str)
-    return table.concat(p, "_"):upper()
+    return U.upper(table.concat(p, "_"))
 end
 
 ---@type Chisel.Method
 local to_kebab = function(str)
     local p = M.parts(str)
-    return table.concat(p, "-"):lower()
+    return U.lower(table.concat(p, "-"))
 end
 
 ---@type Chisel.Method
 local to_dot = function(str)
     local p = M.parts(str)
-    return table.concat(p, "."):lower()
+    return U.lower(table.concat(p, "."))
 end
 
 ---@type Chisel.Method
@@ -86,12 +86,12 @@ end
 
 ---@type Chisel.Method
 local to_n12e = function(str)
-    if #str <= 2 then return str end
-    return str:sub(1, 1) .. (#str - 2) .. str:sub(#str, #str)
+    local len = M.utf8len(str)
+    if len <= 2 then return str end
+    return U.utf8sub(str, 1, 1) .. (len - 2) .. U.utf8sub(str, len, len)
 end
 
 -- TODO:
--- use vim.fn.toupper and vim.fn.tolower to also up non ascii chars
 -- Title_Case
 -- Phrase_case
 -- comma,case

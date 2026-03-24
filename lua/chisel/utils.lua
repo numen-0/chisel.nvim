@@ -1,9 +1,24 @@
 local M = {}
 
+M.upper = vim.fn.toupper
+M.lower = vim.fn.tolower
+
+---@param str string
+---@return string: head first character
+---@return string: tail rest of characters
+M.chop_head = function(str)
+    local head = M.utf8sub(str, 1, 1)
+    local tail  = M.utf8sub(str, 2)
+    return head, tail
+end
+
 -- capitalize
 ---@param  s string
 ---@return string
-M.cap = function(s) return s:sub(1, 1):upper() .. s:sub(2) end
+M.cap = function(str)
+    local head, tail = M.chop_head(str)
+    return M.upper(head) .. M.lower(tail)
+end
 
 ---@param  text string
 ---@return boolean
@@ -60,10 +75,15 @@ M.flatten = function(t)
 end
 
 -- from: https://github.com/blitmap/lua-utf8-simple/tree/master
+---@param  str string
+---@return integer
 M.utf8len = function(str)
 	return select(2, str:gsub('[^\128-\193]', ''))
 end
 
+---@param  str   string
+---@param  width integer
+---@return string
 M.pad_utf8 = function(str, width)
     local len = M.utf8len(str)
     if len < width then
@@ -71,6 +91,30 @@ M.pad_utf8 = function(str, width)
     else
         return str
     end
+end
+
+---@param  str string
+---@param  i   integer|nil: from character (1-based index), if nil set to 1
+---@param  j   integer|nil: to character (inclusive), if nil set to -1
+---@return string
+M.utf8sub = function(str, i, j)
+    i = i or 1
+    j = j or -1
+
+    local chars = {}
+    for uchar in str:gmatch("[%z\1-\127\194-\244][\128-\191]*") do
+        table.insert(chars, uchar)
+    end
+
+    if j < 0 then j = #chars + j + 1 end
+
+    i = math.max(i, 1)
+    j = math.min(j, #chars)
+
+    local out = {}
+    for k = i, j do table.insert(out, chars[k]) end
+
+    return table.concat(out)
 end
 
 return M
