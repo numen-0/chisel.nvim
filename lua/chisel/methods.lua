@@ -95,7 +95,7 @@ end)
 
 ---@type Chisel.Method
 local to_n12e = register("n12e", function(str)
-    local len = M.utf8len(str)
+    local len = U.utf8len(str)
     if len <= 2 then return str end
     return U.utf8sub(str, 1, 1) .. (len - 2) .. U.utf8sub(str, len, len)
 end)
