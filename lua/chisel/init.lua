@@ -28,22 +28,31 @@ M.register = function(name, func)
     M.config.methods[name] = func
 end
 
----@param method string
+---@param method string|Chisel.Method
 ---@param str string
 ---@return string
 M.apply = function(method, str)
-    local fn = M.config.methods[method]
+    local fn = nil
+    if type(method) == "string" then
+        fn = M.config.methods[method]
+    elseif type(method) == "function" then
+        fn = method
+    else
+        error(string.format(
+            "Invalid type for `method`, expected string or function, got %s (%s)",
+            type(method), tostring(method)))
+    end
 
     if fn == nil then
         vim.notify(string.format("Chisel: unknown method '%s'", method),
-                vim.log.levels.ERROR)
+            vim.log.levels.ERROR)
         return str
     end
 
     return fn(str)
 end
 
----@param method string
+---@param method string|Chisel.Method
 M.current_word = function(method)
     local word = vim.fn.expand("<cword>")
     local new = M.apply(method, word)
@@ -51,7 +60,7 @@ M.current_word = function(method)
     vim.cmd("normal! ciw" .. new)
 end
 
----@param method string
+---@param method string|Chisel.Method
 M.visual = function(method)
     local start_pos = vim.fn.getpos("'<")
     local end_pos = vim.fn.getpos("'>")

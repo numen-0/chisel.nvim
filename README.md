@@ -72,7 +72,9 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 ## Configuaration
 
 ```lua
-require("chisel").setup({
+local chisel = require("chisel")
+
+chisel.setup({
     methods = {
         -- add custom case converters here (or/and override existing ones)
         shout = function(str)
@@ -80,6 +82,39 @@ require("chisel").setup({
         end,
     },
 })
+
+-- Optional: set some keymaps
+
+local methods = require("chisel.methods")
+
+local cases, seps = {
+    ["C"] = "cap",
+    ["u"] = "lower",
+    ["U"] = "upper",
+}, {
+    ["n"] = "none",
+    ["d"] = "dash",
+    ["t"] = "dot",
+    ["u"] = "underscore",
+}
+
+for ch, case_head in pairs(cases) do
+    for ct, case_tail in pairs(cases) do
+        for s, sep in pairs(seps) do
+            local fn = methods.generic(case_head, case_tail, sep)
+
+            local key
+            if ch == ct then
+                key = string.format("<leader>C%s%s", ch, s)
+            else
+                key = string.format("<leader>C%s%s%s", ch, ct, s)
+            end
+
+            vim.keymap.set("n", key, function() chisel.current_word(fn) end)
+            vim.keymap.set("v", key, function() chisel.visual(fn) end)
+        end
+    end
+end
 ```
 
 ## Create your own case transformations
@@ -152,6 +187,8 @@ end, { desc = "Duplicate the text (visual mode)" })
 | `apply(method, txt)`     | Transform the string, return transformed string or original if method is unknown |
 | `current_word(method)`   | Apply the word under the cursor                   |
 | `visual(method)`         | Apply to the current visual selection             |
+
+> **Note**: `method` can be a `Chisel.Method` (`fun(str:string):string`)
 
 ### Command
 
