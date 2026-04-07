@@ -55,6 +55,7 @@ conventions.
   + `space case`
   + `Title_Case`
   + `UPPER_CASE`
+  + `Train-Case`
 - Custom methods can be added.
 
 ## Install
@@ -91,6 +92,15 @@ local chisel = require("chisel")
 chisel.register("double", function(str)
     return str .. str
 end)
+```
+
+Another example using `chisel.method` utils:
+
+```lua
+local chisel  = require("chisel")
+local methods = require("chisel.methods")
+
+chisel.register("Capita.Dot", methods.generic("cap", nil, "."))
 ```
 
 A more complex example:

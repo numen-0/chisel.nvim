@@ -15,7 +15,7 @@ M.chop_head = function(str)
 end
 
 -- capitalize
----@param  s string
+---@param  str string
 ---@return string
 M.cap = function(str)
     local head, tail = M.chop_head(str)
@@ -39,7 +39,7 @@ M.is_boundary = function(prev, curr)
 end
 
 ---@param  text string
----@return string[]
+---@return { word: string, sep: string }[]
 M.split_preserve = function(text)
     local result = {}
 

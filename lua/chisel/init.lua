@@ -6,19 +6,18 @@
 ---@class Chisel.Config
 ---@field methods table<string, Chisel.Method>
 
----@alias Chisel.Method fun(string): string
+---@alias Chisel.Method fun(str: string): string
 
 -- modules --------------------------------------------------------------------
 
 local M = {}
-local methods = require("chisel.methods")
 local U = require("chisel.utils")
 
 -- state ----------------------------------------------------------------------
 
 ---@type Chisel.Config
 M.config = {
-    methods = U.clone(methods.built_in),
+    methods = require("chisel.methods").built_in(),
 }
 
 -- api ------------------------------------------------------------------------
@@ -31,7 +30,7 @@ end
 
 ---@param method string
 ---@param str string
----@return string|nil
+---@return string
 M.apply = function(method, str)
     local fn = M.config.methods[method]
 
